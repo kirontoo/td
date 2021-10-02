@@ -18,6 +18,16 @@ func init() {
 }
 
 func runAddCmd(cmd *cobra.Command, args []string) {
+	if len(args) == 0 {
+		fmt.Println("Missing task argument")
+		return
+	}
+
 	task := strings.Join(args, " ")
 	fmt.Printf("Added \"%s\" to your task list. \n", task)
+
+	// if err != nil {
+	// 	// fmt.Errorf("Could not save new task %s", task)
+	// 	fmt.Printf("Could not save new task:\n %s", task)
+	// }
 }
