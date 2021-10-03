@@ -36,13 +36,14 @@ func TestInitDb(t *testing.T) {
 		}
 	})
 
-	// 	t.Cleanup(func() {
-	// 		db.Close()
-	// 		deleteDb()
-	// 	})
+	t.Cleanup(func() {
+		db.Close()
+	})
 }
 
 func TestCreateTask(t *testing.T) {
+	openDb()
+
 	t.Run("should create a new task", func(t *testing.T) {
 		want := "this is a new task"
 		key, err := CreateTask(want)
@@ -93,6 +94,7 @@ func TestCreateTask(t *testing.T) {
 
 	t.Cleanup(func() {
 		db.Close()
+		deleteDb()
 	})
 }
 
