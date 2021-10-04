@@ -22,25 +22,18 @@ THE SOFTWARE.
 package main
 
 import (
-	"fmt"
-	"os"
 	"path/filepath"
 
 	"github.com/kirontoo/td/cmd"
 	"github.com/kirontoo/td/db"
+	"github.com/kirontoo/td/util"
 	homedir "github.com/mitchellh/go-homedir"
 )
 
 func main() {
 	home, _ := homedir.Dir()
 	dbPath := filepath.Join(home, "td.db")
-	must(db.Init(dbPath))
+	util.ExitIfErr(db.Init(dbPath))
+	defer db.Close()
 	cmd.Execute()
-}
-
-func must(err error) {
-	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
 }
