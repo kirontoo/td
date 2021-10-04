@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/kirontoo/td/db"
+	"github.com/kirontoo/td/util"
 	"github.com/spf13/cobra"
 )
 
@@ -24,10 +26,11 @@ func runAddCmd(cmd *cobra.Command, args []string) {
 	}
 
 	task := strings.Join(args, " ")
-	fmt.Printf("Added \"%s\" to your task list. \n", task)
 
-	// if err != nil {
-	// 	// fmt.Errorf("Could not save new task %s", task)
-	// 	fmt.Printf("Could not save new task:\n %s", task)
-	// }
+	id, err := db.CreateTask(task)
+	if err != nil {
+		util.ExitIfErr(err)
+	}
+
+	fmt.Println("Added new task:", id)
 }
