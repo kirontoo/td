@@ -2,6 +2,7 @@ package db
 
 import (
 	"encoding/binary"
+	"encoding/json"
 	"time"
 
 	"github.com/boltdb/bolt"
@@ -13,8 +14,10 @@ var db *bolt.DB
 var taskBucket = []byte("tasks")
 
 type Task struct {
-	Key   int
-	Value string
+	Key       int
+	Value     string
+	Completed bool
+	Created   time.Time
 }
 
 func Init(dbPath string) error {
@@ -30,14 +33,27 @@ func Init(dbPath string) error {
 	})
 }
 
-func CreateTask(task string) (int, error) {
+func CreateTask(taskValue string) (int, error) {
 	var id int
 	err := db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket(taskBucket)
 		id64, _ := b.NextSequence()
 		id = int(id64)
 		key := itob(id)
-		return b.Put(key, []byte(task))
+
+		task := &Task{
+			Key:       id,
+			Value:     taskValue,
+			Created:   time.Now(),
+			Completed: false,
+		}
+
+		encoded, err := json.Marshal(task)
+		if err != nil {
+			return err
+		}
+
+		return b.Put(key, encoded)
 	})
 
 	if err != nil {
@@ -71,11 +87,12 @@ func GetAllTasks() ([]Task, error) {
 
 		c := b.Cursor()
 		for k, v := c.First(); k != nil; k, v = c.Next() {
-			// only check keys because they hsould never be nil
-			tasks = append(tasks, Task{
-				Key:   btoi(k),
-				Value: string(v),
-			})
+			t, err := unmarshalTask(v)
+			if err != nil {
+				return err
+			}
+
+			tasks = append(tasks, t)
 		}
 
 		return nil
@@ -92,4 +109,18 @@ func DeleteTask(key int) error {
 	return db.Update(func(tx *bolt.Tx) error {
 		return tx.Bucket(taskBucket).Delete(itob(key))
 	})
+}
+
+func MarkCompleted(key int) error {
+	return nil
+}
+
+func unmarshalTask(t []byte) (Task, error) {
+	var task Task
+	err := json.Unmarshal(t, &task)
+	if err != nil {
+		return task, err
+	}
+
+	return task, nil
 }
