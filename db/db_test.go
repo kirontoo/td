@@ -1,6 +1,7 @@
 package db
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -76,13 +77,17 @@ func TestCreateTask(t *testing.T) {
 			t.Failed()
 		}
 
-		var got string
 		if err := db.View(func(tx *bolt.Tx) error {
+			var got Task
 			value := tx.Bucket(taskBucket).Get(itob(key))
-			got = string(value)
+			jsonErr := json.Unmarshal([]byte(value), &got)
+			if jsonErr != nil {
+				t.Error("Failed to unmarshal value")
+				t.FailNow()
+			}
 
-			if got != want {
-				return fmt.Errorf("Created the wrong task.\n got: %s\n want: %s", got, want)
+			if got.Value != want {
+				return fmt.Errorf("Created the wrong task.\n got: %s\n want: %s", got.Value, want)
 			}
 
 			return nil
