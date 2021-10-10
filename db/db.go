@@ -3,6 +3,7 @@ package db
 import (
 	"encoding/binary"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
@@ -38,6 +39,7 @@ func Init(dbPath string) error {
 	})
 }
 
+// Returns the key of the task
 func CreateTask(taskValue string) (int, error) {
 	var id int
 	err := db.Update(func(tx *bolt.Tx) error {
@@ -81,6 +83,7 @@ func Close() {
 	db.Close()
 }
 
+// TODO: function to filter out completed tasks?
 func GetAllTasks() ([]Task, error) {
 	var tasks []Task
 	err := db.View(func(tx *bolt.Tx) error {
@@ -116,11 +119,11 @@ func MarkCompleted(key int) error {
 	return db.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket(taskBucket)
 		old := bucket.Get(itob(key))
-
-		t, mErr := unmarshalTask(old)
-		if mErr != nil {
-			return mErr
+		if old == nil {
+			return errors.New("this task does not exist")
 		}
+
+		t, _ := unmarshalTask(old)
 
 		// TODO: do I need to create an entire new task just to change one value?
 		task := &Task{
