@@ -96,7 +96,6 @@ func TestCreateTask(t *testing.T) {
 			t.Fail()
 		}
 	})
-
 }
 
 func TestMarkCompleted(t *testing.T) {
@@ -138,15 +137,7 @@ func TestMarkCompleted(t *testing.T) {
 
 	})
 
-	t.Run("should fail to mark complete a task that doesn't exist", func(t *testing.T) {
-		taskStr := "Test mark completed"
-		_, cErr := CreateTask(taskStr)
-
-		if cErr != nil {
-			t.Error("Could not create a new task")
-			t.FailNow()
-		}
-
+	t.Run("fail to mark complete task that doesn't exist", func(t *testing.T) {
 		err := MarkCompleted(80)
 		if err == nil {
 			t.Error("Marked a task that should not exist")
