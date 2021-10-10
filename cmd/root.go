@@ -1,5 +1,5 @@
 /*
-Copyright © 2021 Amy Nguyen-Dang
+Copyright © 2021 kirontoo
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
