@@ -125,15 +125,14 @@ func MarkCompleted(key int) error {
 
 		t, _ := unmarshalTask(old)
 
-		// TODO: do I need to create an entire new task just to change one value?
-		task := &Task{
-			Key:       t.Key,
-			Value:     t.Value,
-			Created:   t.Created,
-			Completed: true,
+		// Don't bother marking completed if already completed
+		if !t.Completed {
+			t.Completed = true
+		} else {
+			return nil
 		}
 
-		encoded, _ := json.Marshal(task)
+		encoded, _ := json.Marshal(t)
 		return tx.Bucket(taskBucket).Put(itob(key), encoded)
 	})
 }
