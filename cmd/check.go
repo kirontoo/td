@@ -25,6 +25,8 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/kirontoo/td/db"
+	"github.com/kirontoo/td/util"
 	"github.com/spf13/cobra"
 )
 
@@ -50,5 +52,13 @@ func runCheckCmd(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	fmt.Println(ids)
+	var completed []int
+	for _, id := range ids {
+		err := db.MarkCompleted(id)
+		if err == nil {
+			completed = append(completed, id)
+		}
+	}
+
+	fmt.Println("Marked completed", util.SliceToString(completed))
 }
