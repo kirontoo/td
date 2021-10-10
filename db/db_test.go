@@ -86,7 +86,7 @@ func TestCreateTask(t *testing.T) {
 				t.FailNow()
 			}
 
-			if got.Value != want {
+			if got.Value != want && got.Key != key {
 				return fmt.Errorf("Created the wrong task.\n got: %s\n want: %s", got.Value, want)
 			}
 
