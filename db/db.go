@@ -3,6 +3,7 @@ package db
 import (
 	"encoding/binary"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/boltdb/bolt"
@@ -18,6 +19,10 @@ type Task struct {
 	Value     string
 	Completed bool
 	Created   time.Time
+}
+
+func (t *Task) String() string {
+	return fmt.Sprintf("%s", t.Value)
 }
 
 func Init(dbPath string) error {
@@ -48,11 +53,7 @@ func CreateTask(taskValue string) (int, error) {
 			Completed: false,
 		}
 
-		encoded, err := json.Marshal(task)
-		if err != nil {
-			return err
-		}
-
+		encoded, _ := json.Marshal(task)
 		return b.Put(key, encoded)
 	})
 
@@ -112,7 +113,26 @@ func DeleteTask(key int) error {
 }
 
 func MarkCompleted(key int) error {
-	return nil
+	return db.Update(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket(taskBucket)
+		old := bucket.Get(itob(key))
+
+		t, mErr := unmarshalTask(old)
+		if mErr != nil {
+			return mErr
+		}
+
+		// TODO: do I need to create an entire new task just to change one value?
+		task := &Task{
+			Key:       t.Key,
+			Value:     t.Value,
+			Created:   t.Created,
+			Completed: true,
+		}
+
+		encoded, _ := json.Marshal(task)
+		return tx.Bucket(taskBucket).Put(itob(key), encoded)
+	})
 }
 
 func unmarshalTask(t []byte) (Task, error) {
