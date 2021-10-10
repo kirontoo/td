@@ -97,6 +97,63 @@ func TestCreateTask(t *testing.T) {
 		}
 	})
 
+}
+
+func TestMarkCompleted(t *testing.T) {
+	t.Run("should mark a task as completed", func(t *testing.T) {
+		taskStr := "Test mark completed"
+		key, cErr := CreateTask(taskStr)
+		if cErr != nil {
+			t.Error("Could not create a new task")
+			t.FailNow()
+		}
+
+		// Task.Completed should be true
+		want := true
+
+		// Mark completed
+		err := MarkCompleted(key)
+		if err != nil {
+			t.Error(err)
+		}
+
+		var got []byte
+		if err := db.View(func(tx *bolt.Tx) error {
+			got = tx.Bucket(taskBucket).Get(itob(key))
+			if got == nil {
+				return errors.New("this task does not exist")
+			}
+			return nil
+		}); err != nil {
+			t.Log(err)
+			t.FailNow()
+		}
+
+		task, _ := unmarshalTask(got)
+		if task.Completed != want {
+			t.Log(task)
+			t.Error("Task was not marked completed")
+			t.Fail()
+		}
+
+	})
+
+	t.Run("should fail to mark complete a task that doesn't exist", func(t *testing.T) {
+		taskStr := "Test mark completed"
+		_, cErr := CreateTask(taskStr)
+
+		if cErr != nil {
+			t.Error("Could not create a new task")
+			t.FailNow()
+		}
+
+		err := MarkCompleted(80)
+		if err == nil {
+			t.Error("Marked a task that should not exist")
+			t.Fail()
+		}
+	})
+
 	t.Cleanup(func() {
 		db.Close()
 		deleteDb()
