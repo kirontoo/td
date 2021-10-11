@@ -36,6 +36,8 @@ var listCmd = &cobra.Command{
 	Run:   runListCmd,
 }
 
+var completed bool
+
 func init() {
 	rootCmd.AddCommand(listCmd)
 
@@ -47,7 +49,7 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// listCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	listCmd.Flags().BoolVarP(&completed, "completed", "c", false, "List completed tasks")
 }
 
 func runListCmd(cmd *cobra.Command, args []string) {
@@ -63,7 +65,24 @@ func runListCmd(cmd *cobra.Command, args []string) {
 	}
 
 	fmt.Println("Tasks:")
+
+	if completed {
+		tasks = findCompletedTasks(tasks)
+	}
+
 	for index, task := range tasks {
 		fmt.Printf("%d. %s\n", index+1, task.Value)
 	}
+}
+
+func findCompletedTasks(tasks []db.Task) []db.Task {
+	var completed []db.Task
+
+	for _, t := range tasks {
+		if t.Completed {
+			completed = append(completed, t)
+		}
+	}
+
+	return completed
 }
