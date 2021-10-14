@@ -109,6 +109,60 @@ func GetAllTasks() ([]Task, error) {
 	return tasks, nil
 }
 
+func GetUncompletedTasks() ([]Task, error) {
+	var tasks []Task
+
+	err := db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket(taskBucket)
+
+		c := b.Cursor()
+		for k, v := c.First(); k != nil; k, v = c.Next() {
+			t, err := unmarshalTask(v)
+			if err != nil {
+				return err
+			}
+
+			if !t.Completed {
+				tasks = append(tasks, t)
+			}
+		}
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return tasks, nil
+}
+
+func GetCompletedTasks() ([]Task, error) {
+	var tasks []Task
+
+	err := db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket(taskBucket)
+
+		c := b.Cursor()
+		for k, v := c.First(); k != nil; k, v = c.Next() {
+			t, err := unmarshalTask(v)
+			if err != nil {
+				return err
+			}
+
+			if t.Completed {
+				tasks = append(tasks, t)
+			}
+		}
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return tasks, nil
+}
+
 func DeleteTask(key int) error {
 	return db.Update(func(tx *bolt.Tx) error {
 		return tx.Bucket(taskBucket).Delete(itob(key))
