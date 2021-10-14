@@ -67,22 +67,14 @@ func runListCmd(cmd *cobra.Command, args []string) {
 	fmt.Println("Tasks:")
 
 	if completed {
-		tasks = findCompletedTasks(tasks)
+		tasks, err = db.GetCompletedTasks()
+		if err != nil {
+			fmt.Println("Could not find completed tasks")
+			os.Exit(1)
+		}
 	}
 
 	for index, task := range tasks {
 		fmt.Printf("%d. %s\n", index+1, task.Value)
 	}
-}
-
-func findCompletedTasks(tasks []db.Task) []db.Task {
-	var completed []db.Task
-
-	for _, t := range tasks {
-		if t.Completed {
-			completed = append(completed, t)
-		}
-	}
-
-	return completed
 }
