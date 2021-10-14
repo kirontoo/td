@@ -76,8 +76,8 @@ func runListCmd(cmd *cobra.Command, args []string) {
 		handleError(err)
 	}
 
-	for index, task := range tasks {
-		fmt.Printf("%d. %s\n", index+1, task.Value)
+	for _, task := range tasks {
+		fmt.Printf("%d. %s\n", task.Key+1, task.Value)
 	}
 }
 
