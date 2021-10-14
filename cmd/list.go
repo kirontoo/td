@@ -32,11 +32,12 @@ import (
 // listCmd represents the list command
 var listCmd = &cobra.Command{
 	Use:   "list",
-	Short: "List all current tasks",
+	Short: "List all current uncompleted tasks",
 	Run:   runListCmd,
 }
 
 var completed bool
+var all bool
 
 func init() {
 	rootCmd.AddCommand(listCmd)
@@ -50,10 +51,11 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	listCmd.Flags().BoolVarP(&completed, "completed", "c", false, "List completed tasks")
+	listCmd.Flags().BoolVarP(&all, "all", "a", false, "List all tasks")
 }
 
 func runListCmd(cmd *cobra.Command, args []string) {
-	tasks, err := db.GetAllTasks()
+	tasks, err := db.GetUncompletedTasks()
 	if err != nil {
 		fmt.Println("Something went wrong: ", err)
 		os.Exit(1)
@@ -68,13 +70,20 @@ func runListCmd(cmd *cobra.Command, args []string) {
 
 	if completed {
 		tasks, err = db.GetCompletedTasks()
-		if err != nil {
-			fmt.Println("Could not find completed tasks")
-			os.Exit(1)
-		}
+		handleError(err)
+	} else if all {
+		tasks, err = db.GetAllTasks()
+		handleError(err)
 	}
 
 	for index, task := range tasks {
 		fmt.Printf("%d. %s\n", index+1, task.Value)
+	}
+}
+
+func handleError(err error) {
+	if err != nil {
+		fmt.Println("Could not find completed tasks")
+		os.Exit(1)
 	}
 }
