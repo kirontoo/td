@@ -22,29 +22,46 @@ THE SOFTWARE.
 package cmd
 
 import (
+	"fmt"
+	"strconv"
+
+	"github.com/kirontoo/td/db"
 	"github.com/spf13/cobra"
 )
 
-// listCmd represents the list command
 var deleteCmd = &cobra.Command{
-	Use:   "list",
-	Short: "List all current uncompleted tasks",
+	Use:   "delete",
+	Short: "Delete tasks",
 	Run:   runDeleteCmd,
 }
 
 func init() {
 	rootCmd.AddCommand(deleteCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// listCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
 }
 
 func runDeleteCmd(cmd *cobra.Command, args []string) {
+	var ids []int
+	for _, arg := range args {
+		id, err := strconv.Atoi(arg)
+		if err != nil {
+			fmt.Println("Failed to parse the argument: ", arg)
+		} else {
+			ids = append(ids, id-1)
+		}
+	}
 
+	var deleted []int
+	for _, id := range ids {
+		err := db.DeleteTask(id)
+		if err == nil {
+			deleted = append(deleted, id+1)
+		}
+	}
+
+	fmt.Print("Deleted tasks: ")
+	for _, id := range deleted {
+		fmt.Printf("%d ", id)
+	}
+
+	fmt.Println()
 }
