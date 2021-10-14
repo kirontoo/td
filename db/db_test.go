@@ -233,6 +233,33 @@ func TestGetTasks(t *testing.T) {
 	})
 }
 
+func TestDeleteTask(t *testing.T) {
+	openDb()
+
+	key, err := CreateTask("hello world")
+	if err != nil {
+		t.Error("Could not create task")
+		t.FailNow()
+	}
+
+	err = DeleteTask(key)
+	if err != nil {
+		t.Error(err)
+		t.Fail()
+	}
+
+	tasks, _ := GetAllTasks()
+	if len(tasks) != 0 {
+		t.Error("The task was not deleted")
+		t.Fail()
+	}
+
+	t.Cleanup(func() {
+		db.Close()
+		deleteDb()
+	})
+}
+
 func getTestDbPath() string {
 	currDir, _ := os.Getwd()
 	return filepath.Join(path.Dir(currDir), testDbName)
