@@ -39,6 +39,7 @@ func TestInitDb(t *testing.T) {
 
 	t.Cleanup(func() {
 		db.Close()
+		deleteDb()
 	})
 }
 
@@ -96,9 +97,16 @@ func TestCreateTask(t *testing.T) {
 			t.Fail()
 		}
 	})
+
+	t.Cleanup(func() {
+		db.Close()
+		deleteDb()
+	})
 }
 
 func TestMarkCompleted(t *testing.T) {
+	openDb()
+
 	t.Run("should mark a task as completed", func(t *testing.T) {
 		taskStr := "Test mark completed"
 		key, cErr := CreateTask(taskStr)
@@ -142,6 +150,80 @@ func TestMarkCompleted(t *testing.T) {
 		if err == nil {
 			t.Error("Marked a task that should not exist")
 			t.Fail()
+		}
+	})
+
+	t.Cleanup(func() {
+		db.Close()
+		deleteDb()
+	})
+}
+
+func TestGetTasks(t *testing.T) {
+	openDb()
+	orgTasks := []string{"task 1", "task 2", "task 3", "task 4"}
+
+	t.Run("Get all tasks", func(t *testing.T) {
+		var keys []int
+
+		for _, t := range orgTasks {
+			k, _ := CreateTask(t)
+			keys = append(keys, k)
+		}
+
+		tasks, err := GetAllTasks()
+		if err != nil {
+			t.Error("Could not get tasks")
+			t.Fail()
+		}
+
+		if len(keys) != len(tasks) {
+			t.Error("Wrong amount of tasks returned")
+			t.Fail()
+		}
+	})
+
+	t.Run("Get all uncompleted tasks", func(t *testing.T) {
+		tasks, err := GetUncompletedTasks()
+		if err != nil {
+			t.Error("Could not get tasks")
+			t.Fail()
+		}
+
+		if len(orgTasks) != len(tasks) {
+			t.Error("Wrong amount of tasks returned")
+			t.Fail()
+		}
+
+		for _, task := range tasks {
+			if task.Completed {
+				t.Error("Returned a completed task")
+				t.Fail()
+			}
+		}
+	})
+
+	t.Run("Get all completed tasks", func(t *testing.T) {
+		MarkCompleted(1)
+		MarkCompleted(2)
+
+		tasks, err := GetCompletedTasks()
+
+		if err != nil {
+			t.Error("Could not get tasks")
+			t.Fail()
+		}
+
+		if len(tasks) != 2 {
+			t.Error("Wrong amount of tasks returned")
+			t.Fail()
+		}
+
+		for _, task := range tasks {
+			if !task.Completed {
+				t.Error("Returned a completed task")
+				t.Fail()
+			}
 		}
 	})
 
