@@ -14,6 +14,13 @@ import (
 
 const testDbName = "test.db"
 
+var (
+	ErrTaskDoesNotExist = errors.New("Task does not exist")
+	ErrTaskNotCreated   = errors.New("Task not created")
+	ErrNoTasks          = errors.New("No tasks returned")
+	ErrNotEnoughTasks   = errors.New("Not enough tasks returned")
+)
+
 func TestInitDb(t *testing.T) {
 	// TODO create a after test to delete the created db
 
@@ -51,7 +58,7 @@ func TestCreateTask(t *testing.T) {
 		key, err := CreateTask(want)
 
 		if err != nil {
-			t.Errorf("should have created a new task")
+			t.Error(ErrTaskNotCreated)
 			t.Failed()
 		}
 
@@ -60,7 +67,7 @@ func TestCreateTask(t *testing.T) {
 		if err := db.View(func(tx *bolt.Tx) error {
 			got = tx.Bucket(taskBucket).Get(itob(key))
 			if got == nil {
-				return errors.New("this task does not exist")
+				return ErrTaskDoesNotExist
 			}
 			return nil
 		}); err != nil {
@@ -74,7 +81,7 @@ func TestCreateTask(t *testing.T) {
 		key, err := CreateTask(want)
 
 		if err != nil {
-			t.Errorf("should have created a new task")
+			t.Error(ErrTaskNotCreated)
 			t.Failed()
 		}
 
@@ -111,7 +118,7 @@ func TestMarkCompleted(t *testing.T) {
 		taskStr := "Test mark completed"
 		key, cErr := CreateTask(taskStr)
 		if cErr != nil {
-			t.Error("Could not create a new task")
+			t.Error(ErrTaskNotCreated)
 			t.FailNow()
 		}
 
@@ -128,7 +135,7 @@ func TestMarkCompleted(t *testing.T) {
 		if err := db.View(func(tx *bolt.Tx) error {
 			got = tx.Bucket(taskBucket).Get(itob(key))
 			if got == nil {
-				return errors.New("this task does not exist")
+				return ErrTaskDoesNotExist
 			}
 			return nil
 		}); err != nil {
@@ -173,12 +180,12 @@ func TestGetTasks(t *testing.T) {
 
 		tasks, err := GetAllTasks()
 		if err != nil {
-			t.Error("Could not get tasks")
+			t.Error(ErrNoTasks)
 			t.Fail()
 		}
 
 		if len(keys) != len(tasks) {
-			t.Error("Wrong amount of tasks returned")
+			t.Error(ErrNotEnoughTasks)
 			t.Fail()
 		}
 	})
@@ -186,12 +193,12 @@ func TestGetTasks(t *testing.T) {
 	t.Run("Get all uncompleted tasks", func(t *testing.T) {
 		tasks, err := GetUncompletedTasks()
 		if err != nil {
-			t.Error("Could not get tasks")
+			t.Error(ErrNoTasks)
 			t.Fail()
 		}
 
 		if len(orgTasks) != len(tasks) {
-			t.Error("Wrong amount of tasks returned")
+			t.Error(ErrNotEnoughTasks)
 			t.Fail()
 		}
 
@@ -210,12 +217,12 @@ func TestGetTasks(t *testing.T) {
 		tasks, err := GetCompletedTasks()
 
 		if err != nil {
-			t.Error("Could not get tasks")
+			t.Error(ErrNoTasks)
 			t.Fail()
 		}
 
 		if len(tasks) != 2 {
-			t.Error("Wrong amount of tasks returned")
+			t.Error(ErrNotEnoughTasks)
 			t.Fail()
 		}
 
@@ -238,7 +245,7 @@ func TestDeleteTask(t *testing.T) {
 
 	key, err := CreateTask("hello world")
 	if err != nil {
-		t.Error("Could not create task")
+		t.Error(ErrTaskNotCreated)
 		t.FailNow()
 	}
 
