@@ -22,8 +22,6 @@ var (
 )
 
 func TestInitDb(t *testing.T) {
-	// TODO create a after test to delete the created db
-
 	t.Run("should initialize a new database", func(t *testing.T) {
 		dbPath := getTestDbPath()
 		err := openDb()
@@ -31,7 +29,6 @@ func TestInitDb(t *testing.T) {
 			t.FailNow()
 		}
 
-		// TODO: create a new test for this
 		// created database in wrong path
 		currDbPath := db.Path()
 		if currDbPath != dbPath {
