@@ -26,6 +26,7 @@ import (
 	"os"
 
 	"github.com/kirontoo/td/db"
+	"github.com/kirontoo/td/util"
 	"github.com/spf13/cobra"
 )
 
@@ -49,8 +50,7 @@ func init() {
 func runListCmd(cmd *cobra.Command, args []string) {
 	tasks, err := db.GetUncompletedTasks()
 	if err != nil {
-		fmt.Println("Something went wrong: ", err)
-		os.Exit(1)
+		util.ExitIfErr(err)
 	}
 
 	if len(tasks) == 0 {
