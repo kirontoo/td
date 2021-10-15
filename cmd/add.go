@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/kirontoo/td/db"
 	"github.com/kirontoo/td/util"
@@ -25,12 +24,21 @@ func runAddCmd(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	task := strings.Join(args, " ")
-
-	id, err := db.CreateTask(task)
-	if err != nil {
-		util.ExitIfErr(err)
+	var ids []int
+	var failed []string
+	for _, arg := range args {
+		id, err := db.CreateTask(arg)
+		if err != nil {
+			failed = append(failed, arg)
+		}
+		ids = append(ids, id+1)
 	}
 
-	fmt.Println("Added new task:", id)
+	fmt.Println("Added new task(s):", util.SliceToString(ids))
+	if len(failed) > 0 {
+		fmt.Println("Failed to create task(s):")
+		for _, t := range failed {
+			fmt.Printf("* %s\n", t)
+		}
+	}
 }
