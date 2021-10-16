@@ -27,6 +27,7 @@ import (
 
 	"github.com/kirontoo/td/db"
 	"github.com/kirontoo/td/util"
+	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 )
 
@@ -54,15 +55,15 @@ func runListCmd(cmd *cobra.Command, args []string) {
 	}
 
 	if len(tasks) == 0 {
-		fmt.Println("No tasks!")
+		pterm.Info.Println("No tasks!")
 		return
 	}
 
-	fmt.Println("Tasks:")
-
 	if completed {
 		tasks, err = db.GetCompletedTasks()
-		handleError(err)
+		if len(tasks) == 0 {
+			pterm.Info.Println("Could not find completed tasks")
+		}
 	} else if all {
 		tasks, err = db.GetAllTasks()
 		handleError(err)
@@ -75,7 +76,7 @@ func runListCmd(cmd *cobra.Command, args []string) {
 
 func handleError(err error) {
 	if err != nil {
-		fmt.Println("Could not find completed tasks")
+		pterm.Error.Println("Could not find completed tasks")
 		os.Exit(1)
 	}
 }
